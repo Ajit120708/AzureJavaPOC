@@ -1,28 +1,14 @@
-# Use an official OpenJDK base image
-
-# Use a smaller base image to run the app (smaller footprint)
-FROM openjdk:17-jdk-slim as build
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
-
-# Set the working directory in the container
+# Use an official Maven image as the base image
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# Copy the Maven project files
+# Copy the pom.xml and the project files to the container
 COPY pom.xml .
 COPY src ./src
-
-# Run Maven to build the project and create the JAR file
+# Build the application using Maven
 RUN mvn clean package -DskipTests
-RUN ls -l target/
-
-# Set the working directory in the container
+# Use an official OpenJDK image as the base image
+FROM openjdk:17-jdk-slim
 WORKDIR /app
-
-# Copy the JAR file from the build image
-COPY --from=build /app/target/hello-world-spring-boot-*.jar /app/hello-world-spring-boot.jar
-
-# Expose the port your Spring Boot app runs on
 EXPOSE 8080
-
-# Run the Spring Boot app
-ENTRYPOINT ["java", "-jar", "/app/hello-world-spring-boot.jar"]
+ADD target/hello-world-spring-boot.jar hello-world-spring-boot.jar
+ENTRYPOINT ["java", "-jar", "hello-world-spring-boot.jar"]
